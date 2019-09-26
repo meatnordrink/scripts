@@ -55,12 +55,26 @@ def printToCSV(toPrint):
 		toPrint.to_csv(filename)
 		print("Data exported to", filename)
 		#could add a conditional warning here for cutColumns about the wait; it takes a bit.
+
 def inputDate():
 	print("What starting date? YYYY-MM-DD")
 	startDate = pd.to_datetime(input() + " 00:00:00")
 	print("What end date? YYYY-MM-DD")
 	endDate = pd.to_datetime(input() + " 23:59:59")
 	return startDate, endDate
+
+def findActives():
+	"""Finds active users, defined as users who have purchased the program (ever) and used it between the dates selected. 
+	Returns `actives`. 
+	"""
+	print("NOTE: This data is based on `todaysDate`, and therefore the range must include the last day in the csv.")
+	print("What starting date? YYYY-MM-DD")
+	startDate = pd.to_datetime(input())
+	print("What end date? YYYY-MM-DD")
+	endDate = pd.to_datetime(input())
+	boughtEver = data.loc[data.boughtTrigger == "fired"]
+	withinRange = boughtEver.loc[boughtEver.todaysDate.between(startDate, endDate)]
+	actives = withinRange
 
 def cutColumns():
 	"""Produces a dataset or csv with all columns after the 1000th removed.
@@ -297,17 +311,19 @@ def metrics():
 	print("If we include renewals:")
 	print("Revenue per-sign-up: $", revPerSignUpWRenew)
 	print("Revenue per purchase: $", revPerBoughtWRenew)
+	input()
 
 def behaviorMetrics():
 	"""Syntax is:
 	useMetrics()
 	"""
+	print("NOTE that this must be run for a period of time including the last date in the csv!")
+	print("===============================")
 	print("What starting date? YYYY-MM-DD")
 	startDate = pd.to_datetime(input())
 	print("What end date? YYYY-MM-DD")
 	endDate = pd.to_datetime(input())
 	boughtEver = data.loc[data.boughtTrigger == "fired"]
-	#boughtEver.todaysDate = boughtEver.todaysDate.apply(pd.to_datetime) # the .apply is necessary to avoid a chain-indexing warning, "SettingWithCopyWarning". An alternative is to set the relevant columns as dates on import, with pd.read_csv('input.csv', parse_dates=['Time Started (UTC)', 'timeStarted'), though that might mean the metrics() function needs to be adjusted accordingly (no, as I didn't use 'Time Started (UTC)')
 	withinRange = boughtEver.loc[boughtEver.todaysDate.between(startDate, endDate)]
 	actives = withinRange
 
@@ -364,7 +380,7 @@ def behaviorMetrics():
 	print("----", challCompleted)
 	print("Are users using notifications?")
 	print("----", gettingPrompts, "of", actives.shape[0], "active users are receiving prompts.")
-
+	input()
 
 def phq9Change():
 	"""This looks at the average change between the first and last value in a user's PHQ9 scores, for users with more than 4 entries.
@@ -418,7 +434,7 @@ def phq9Change():
 
 def phq9ChangeInput():
 	"""This looks at the average change between the first and last value in a user's PHQ9 scores, for users with more than 4 entries.
-	It pulls data from the input range.
+	It pulls data for users who purchased within the input range.
 	"""
 	def parseArray(arr):
 		"""Takes as input a string that looks like an array and returns an array of values. The values in the array are not necessarily of the same type. The function attempts to eval() each value in the array; but if it fails, it leaves the unevaluated string in place."""
@@ -443,6 +459,8 @@ def phq9ChangeInput():
 
 		return out
 
+	print("NOTE: Goes by purchase date; specify the month you're looking at purchases in (i.e., not the last 30 days.)")
+	print("========================")
 	startDate, endDate = inputDate()
 	bought = data.loc[data.boughtTime.between(startDate, endDate)]
 
@@ -472,7 +490,7 @@ def phq9ChangeInput():
 	# print("mean third mood value:", thirdMoodValues.mean())
 
 def mjEntriesCompleted():
-	"""For all purchasers, the average number of the MJentriesCompletedEachSession variable. Users with no entries are counted as 0, and included in the average.
+	"""For active users, the average number of the MJentriesCompletedEachSession variable. Users with no entries are counted as 0, and included in the average.
 	"""
 	def parseArray(arr):
 		"""Takes as input a string that looks like an array and returns an array of values. The values in the array are not necessarily of the same type. The function attempts to eval() each value in the array; but if it fails, it leaves the unevaluated string in place."""
@@ -497,25 +515,24 @@ def mjEntriesCompleted():
 
 		return out
 
-	# data = pd.read_csv('input.csv', converters = {'MJentriesCompletedEachSession':str}, low_memory=False)
-	bought = data.loc[data.boughtTrigger == "fired"]
-	bought.MJentriesCompletedEachSession = bought.MJentriesCompletedEachSession.apply(parseNumericArray)
+	findActives()
+	actives.MJentriesCompletedEachSession = actives.MJentriesCompletedEachSession.apply(parseNumericArray)
 
-	firstEntries = bought.MJentriesCompletedEachSession.apply(lambda x: x[0])
+	firstEntries = actives.MJentriesCompletedEachSession.apply(lambda x: x[0])
 	firstEntriesNoZeroes = firstEntries.loc[firstEntries > 0]
 	firstEntriesPercentZeroes = round((1-((firstEntriesNoZeroes.shape[0])/(firstEntries.shape[0])))*100, 2)
 
-	secondSet = bought.loc[bought.MJentriesCompletedEachSession.apply(len) > 1]
+	secondSet = actives.loc[actives.MJentriesCompletedEachSession.apply(len) > 1]
 	secondEntries = secondSet.MJentriesCompletedEachSession.apply(lambda x: x[1])
 	secondEntriesNoZeroes = secondEntries.loc[secondEntries > 0]
 	secondEntriesPercentZeroes = round((1-((secondEntriesNoZeroes.shape[0])/(secondEntries.shape[0])))*100, 2)
 
-	thirdSet = bought.loc[bought.MJentriesCompletedEachSession.apply(len) > 2]
+	thirdSet = actives.loc[actives.MJentriesCompletedEachSession.apply(len) > 2]
 	thirdEntries = thirdSet.MJentriesCompletedEachSession.apply(lambda x: x[2])
 	thirdEntriesNoZeroes = thirdEntries.loc[thirdEntries > 0]
 	thirdEntriesPercentZeroes = round((1-((thirdEntriesNoZeroes.shape[0])/(thirdEntries.shape[0])))*100, 2)
 
-	fourthSet = bought.loc[bought.MJentriesCompletedEachSession.apply(len) > 3]
+	fourthSet = actives.loc[actives.MJentriesCompletedEachSession.apply(len) > 3]
 	fourthEntries = fourthSet.MJentriesCompletedEachSession.apply(lambda x: x[3])
 	fourthEntriesNoZeroes = fourthEntries.loc[fourthEntries > 0]
 	fourthEntriesPercentZeroes = round((1-((fourthEntriesNoZeroes.shape[0])/(fourthEntries.shape[0])))*100, 2)
@@ -540,81 +557,82 @@ def mjEntriesCompleted():
 	print("mean MJentriesCompleted - IMJ:", round(fourthEntries.mean(), 1))
 	print("not counting 0's:", round(fourthEntriesNoZeroes.mean()))
 	print("% with 0 entries: %", fourthEntriesPercentZeroes)
-
-def toolboxEngagement():
-	"""Reports from the collection toolboxEngagement, which measures user use of toolbox functions. This function needs to be updated to take the updated toolbox options into account (as of April 2019).
-	NOTE: THIS FUNCTION IS OBSOLETE AS OF 04/19"""
-	def parseArray(arr):
-		"""Takes as input a string that looks like an array and returns an array of values. The values in the array are not necessarily of the same type. The function attempts to eval() each value in the array; but if it fails, it leaves the unevaluated string in place."""
-		cleaned = arr.replace(" ", "").replace("[", "").replace("]", "")
-		vals = cleaned.split(",")
-
-		for i in range(0, len(vals)):
-			try:
-				vals[i] = eval(vals[i])
-			except:
-				pass
-
-		return vals
-
-	def parseNumericArray(arr):
-		"""Takes as input a string that looks like an array and returns an array of numeric values. Any value in the array that can't be evaluated is turned into a zero."""
-		out = parseArray(arr)
-
-		for i in range(0, len(out)):
-			if isinstance(out[i], str):
-				out[i] = 0
-
-		return out
-
-	bought = data.loc[data.boughtTrigger == "fired"]
-	# bought = bought.toolboxEngagement.fillna("zero")
-	noEngagement = bought.loc[bought.toolboxEngagement == ""]
-	percentNone = round((noEngagement.shape[0])/(bought.shape[0]), 2)*100
-	engaged = bought.loc[bought.toolboxEngagement != ""]
-	engaged = engaged.toolboxEngagement.apply(parseNumericArray)
-
-	num3 = engaged.apply(lambda x: x[2])
-	num3once = num3.loc[num3 > 0]
-	num3twice = num3.loc[num3 > 1]
-
-	num4 = engaged.apply(lambda x: x[3])
-	num4once = num4.loc[num4 > 0]
-	num4twice = num4.loc[num4 > 1]
-
-	num6 = engaged.apply(lambda x: x[5])
-	num6once = num6.loc[num6 > 0]
-	num6twice = num6.loc[num6 > 1]
-
-	num7 = engaged.apply(lambda x: x[6])
-	num7once = num7.loc[num7 > 0]
-	num7twice = num7.loc[num7 > 1]
-
-	num8 = engaged.apply(lambda x: x[7])
-	num8once = num8.loc[num8 > 0]
-	num8twice = num8.loc[num8 > 1]
-
-	# - #3 session outline, #4 session review, #6 facts/sources, #7 problem solver, #8 contribute to uplift
-
-
-
-	print("Percent 0 toolbox engagment: %", percentNone)
-	print("")
-	print("Session Outline, engaged once or more: %", round((num3once.shape[0]/num3.shape[0])*100, 2))
-	print("--, twice or more: %", round((num3twice.shape[0]/num3.shape[0])*100, 2))
-	print("")
-	print("Session Review, engaged once or more: %", round((num4once.shape[0]/num4.shape[0])*100, 2))
-	print("--, twice or more: %", round((num4twice.shape[0]/num4.shape[0])*100, 2))
-	print("")
-	print("Facts/Sources, engaged once or more: %", round((num6once.shape[0]/num6.shape[0])*100, 2))
-	print("--, twice or more: %", round((num6twice.shape[0]/num6.shape[0])*100, 2))
-	print("")
-	print("Problem Solver, engaged once or more: %", round((num7once.shape[0]/num7.shape[0])*100, 2))
-	print("--, twice or more: %", round((num7twice.shape[0]/num7.shape[0])*100, 2))
-	print("")
-	print("Contribute to UpLift, engaged once or more: %", round((num8once.shape[0]/num8.shape[0])*100, 2))
-	print("--, twice or more: %", round((num8twice.shape[0]/num8.shape[0])*100, 2))
 	input()
+
+# def toolboxEngagement():
+# 	"""Reports from the collection toolboxEngagement, which measures user use of toolbox functions. This function needs to be updated to take the updated toolbox options into account (as of April 2019).
+# 	NOTE: THIS FUNCTION IS OBSOLETE AS OF 04/19"""
+# 	def parseArray(arr):
+# 		"""Takes as input a string that looks like an array and returns an array of values. The values in the array are not necessarily of the same type. The function attempts to eval() each value in the array; but if it fails, it leaves the unevaluated string in place."""
+# 		cleaned = arr.replace(" ", "").replace("[", "").replace("]", "")
+# 		vals = cleaned.split(",")
+
+# 		for i in range(0, len(vals)):
+# 			try:
+# 				vals[i] = eval(vals[i])
+# 			except:
+# 				pass
+
+# 		return vals
+
+# 	def parseNumericArray(arr):
+# 		"""Takes as input a string that looks like an array and returns an array of numeric values. Any value in the array that can't be evaluated is turned into a zero."""
+# 		out = parseArray(arr)
+
+# 		for i in range(0, len(out)):
+# 			if isinstance(out[i], str):
+# 				out[i] = 0
+
+# 		return out
+
+# 	bought = data.loc[data.boughtTrigger == "fired"]
+# 	# bought = bought.toolboxEngagement.fillna("zero")
+# 	noEngagement = bought.loc[bought.toolboxEngagement == ""]
+# 	percentNone = round((noEngagement.shape[0])/(bought.shape[0]), 2)*100
+# 	engaged = bought.loc[bought.toolboxEngagement != ""]
+# 	engaged = engaged.toolboxEngagement.apply(parseNumericArray)
+
+# 	num3 = engaged.apply(lambda x: x[2])
+# 	num3once = num3.loc[num3 > 0]
+# 	num3twice = num3.loc[num3 > 1]
+
+# 	num4 = engaged.apply(lambda x: x[3])
+# 	num4once = num4.loc[num4 > 0]
+# 	num4twice = num4.loc[num4 > 1]
+
+# 	num6 = engaged.apply(lambda x: x[5])
+# 	num6once = num6.loc[num6 > 0]
+# 	num6twice = num6.loc[num6 > 1]
+
+# 	num7 = engaged.apply(lambda x: x[6])
+# 	num7once = num7.loc[num7 > 0]
+# 	num7twice = num7.loc[num7 > 1]
+
+# 	num8 = engaged.apply(lambda x: x[7])
+# 	num8once = num8.loc[num8 > 0]
+# 	num8twice = num8.loc[num8 > 1]
+
+# 	# - #3 session outline, #4 session review, #6 facts/sources, #7 problem solver, #8 contribute to uplift
+
+
+
+# 	print("Percent 0 toolbox engagment: %", percentNone)
+# 	print("")
+# 	print("Session Outline, engaged once or more: %", round((num3once.shape[0]/num3.shape[0])*100, 2))
+# 	print("--, twice or more: %", round((num3twice.shape[0]/num3.shape[0])*100, 2))
+# 	print("")
+# 	print("Session Review, engaged once or more: %", round((num4once.shape[0]/num4.shape[0])*100, 2))
+# 	print("--, twice or more: %", round((num4twice.shape[0]/num4.shape[0])*100, 2))
+# 	print("")
+# 	print("Facts/Sources, engaged once or more: %", round((num6once.shape[0]/num6.shape[0])*100, 2))
+# 	print("--, twice or more: %", round((num6twice.shape[0]/num6.shape[0])*100, 2))
+# 	print("")
+# 	print("Problem Solver, engaged once or more: %", round((num7once.shape[0]/num7.shape[0])*100, 2))
+# 	print("--, twice or more: %", round((num7twice.shape[0]/num7.shape[0])*100, 2))
+# 	print("")
+# 	print("Contribute to UpLift, engaged once or more: %", round((num8once.shape[0]/num8.shape[0])*100, 2))
+# 	print("--, twice or more: %", round((num8twice.shape[0]/num8.shape[0])*100, 2))
+# 	input()
 
 def gotValue():
 	"""This returns the number/% of users retained, who got value, defined as having 15 days between first and most recent use of the program, and having completed at least 2 PHQ9's (which is a proxy for two sessions).
@@ -642,6 +660,8 @@ def gotValue():
 
 		return out
 
+	print("Based on `boughtTime`; use target month for buyers (not last 30 days)")
+	print("======================")
 	startDate, endDate = inputDate()
 	bought = data.loc[data['boughtTime'].between(startDate, endDate)]
 	bought = bought.assign(daysIn = bought.todaysDate - bought.boughtTime)
@@ -690,7 +710,7 @@ def gotValue():
 	input()
 
 def effective():
-	"""This returns the number/% of users retained, who got value, and for whom UpLift was effective. The numbers are based on the definitions of these terms set in the Monthly Metrics google doc.
+	"""This returns the number/% of users retained, who got value, and for whom UpLift was effective, based on users who purchased during the input time period. The numbers are based on the definitions of these terms set in the Monthly Metrics google doc.
 	"""
 	def parseArray(arr):
 		"""Takes as input a string that looks like an array and returns an array of values. The values in the array are not necessarily of the same type. The function attempts to eval() each value in the array; but if it fails, it leaves the unevaluated string in place."""
@@ -715,6 +735,7 @@ def effective():
 
 		return out
 
+	print("Based on `boughtTime`; use target month for buyers (not last 30 days)")
 	startDate, endDate = inputDate()
 	bought = data.loc[data.boughtTime.between(startDate, endDate)]
 
@@ -991,14 +1012,14 @@ def bugs():
 	print("Print out bug descriptions? y/n")
 	printYN = input()
 	if printYN == 'y':
-		cols = ["bugsByMBdescription", "bugsByIMJdescription"]
+		cols = ["iosApp", "Run", "bugsByMBdescription", "bugsByIMJdescription"]
 		bought[cols].to_csv('MBandIMJbugsDescription.csv')
 	
 	hadMBBugs = bought.loc[bought.bugsByMBdescription.notnull()]
 	MBbugs = hadMBBugs['bugsByMBdescription']
 	hadIMJBugs = bought.loc[bought.bugsByIMJdescription.notnull()]
 	IMJbugs = hadIMJBugs['bugsByIMJdescription']
-	print(MJbugs.values)
+	print(MBbugs.values)
 	print(IMJbugs.values)
 	input()
 
@@ -1106,7 +1127,7 @@ menuOptions = {
 	"phq9Change()" : phq9Change,
 	"phq9ChangeInput()" : phq9ChangeInput,
 	"mjEntriesCompleted()" : mjEntriesCompleted,
-	"toolboxEngagement() - deprecated" : toolboxEngagement,
+	# "toolboxEngagement() - deprecated" : toolboxEngagement,
 	"gotValue()" : gotValue,
 	"effective()" : effective,
 	"daysActive()" : daysActive,
