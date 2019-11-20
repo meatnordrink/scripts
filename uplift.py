@@ -75,6 +75,7 @@ def findActives():
 	boughtEver = data.loc[data.boughtTrigger == "fired"]
 	withinRange = boughtEver.loc[boughtEver.todaysDate.between(startDate, endDate)]
 	actives = withinRange
+	return actives
 
 def cutColumns():
 	"""Produces a dataset or csv with all columns after the 1000th removed.
@@ -515,7 +516,7 @@ def mjEntriesCompleted():
 
 		return out
 
-	findActives()
+	actives = findActives()
 	actives.MJentriesCompletedEachSession = actives.MJentriesCompletedEachSession.apply(parseNumericArray)
 
 	firstEntries = actives.MJentriesCompletedEachSession.apply(lambda x: x[0])
@@ -776,7 +777,7 @@ def daysActive():
 	# bought = bought.where(bought.timeIn > pd.Timedelta(days=1), pd.Timedelta(days=1))
 	# bought = bought.assign(avgDays = bought.daysActiveNb/timeIn)
 	# print("Average number of days active/week:")
-
+	print("Please note that this function is no longer actively recorded.")
 	input()
 
 def satisfactionMetrics():
@@ -829,6 +830,7 @@ def whatsBeingUsed():
 		return out
 
 	print("Note that this function does not exist prior to April 2019.")
+	print("Dates - purchase range.")
 	startDate, endDate = inputDate()
 
 	print("Free only? y/n")
@@ -859,7 +861,7 @@ def whatsBeingUsed():
 		vals = subset.apply(lambda x: x[i])
 		counts.append(vals.count())
 		averages.append(vals.mean())
-	print("==========(Ignore those)=======================")
+	print("==========(begin)=======================")
 	print("**Avg Mood Journal Entries**")
 	print("")
 	print("avgMJbyFF", round(avgMJbyFF, 2))
