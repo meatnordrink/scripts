@@ -262,6 +262,7 @@ def metrics():
 	webBought = boughtThisMonth.loc[boughtThisMonth.iosApp == 0]
 
 	# Find revenue
+	# This needs to be adjusted to reflect net revenue (see below) - Danielle gets gross figures. platform specific rates: Android/iOS - .3. Braintree - .02. Platform specific variable is coming/may be live already. 
 	quarterlySubRev = quarterlySubs.shape[0] * 45
 	monthlySubRev = monthlySubs * 30
 	totalNewSubRev = quarterlySubRev + monthlySubRev
