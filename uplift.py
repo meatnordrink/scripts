@@ -67,7 +67,7 @@ def findActives():
 	"""Finds active users, defined as users who have purchased the program (ever) and used it between the dates selected. 
 	Returns `actives`. 
 	"""
-	print("NOTE: This data is based on `todaysDate`, and therefore the range must include the last day in the csv.")
+	print("Input: Last 30 days.")
 	print("What starting date? YYYY-MM-DD")
 	startDate = pd.to_datetime(input())
 	print("What end date? YYYY-MM-DD")
@@ -156,7 +156,7 @@ def activeUsersAndSpread():
 	* THIS CANNOT BE USED RETROACTIVELY; i.e., IT ONLY WORKS IF THE RANGE INCLUDES THE FINAL DATE IN THE CSV, as it is dependent on the `todaysDate` variable, which is overwritten with each new sign-in. In other words, a user will appear to be active only in the latest period in which they were active.
 
 	"""
-	print("NOTE: This can only be used to find active users if it includes the final date in the CSV, as the dependent variable, `todaysDate`, is overwritten each time the user signs in.")
+	print("Input: Last 30 days.")
 	print("What starting date? YYYY-MM-DD")
 	startDate = pd.to_datetime(input())
 	print("What end date? YYYY-MM-DD")
@@ -262,6 +262,7 @@ def metrics():
 	webBought = boughtThisMonth.loc[boughtThisMonth.iosApp == 0]
 
 	# Find revenue
+	# This needs to be adjusted to reflect net revenue (see below) - Danielle gets gross figures. platform specific rates: Android/iOS - .3. Braintree - .02. Platform specific variable is coming/may be live already. 
 	quarterlySubRev = quarterlySubs.shape[0] * 45
 	monthlySubRev = monthlySubs * 30
 	totalNewSubRev = quarterlySubRev + monthlySubRev
@@ -318,7 +319,7 @@ def behaviorMetrics():
 	"""Syntax is:
 	useMetrics()
 	"""
-	print("NOTE that this must be run for a period of time including the last date in the csv!")
+	print("Input: Last 30 days")
 	print("===============================")
 	print("What starting date? YYYY-MM-DD")
 	startDate = pd.to_datetime(input())
@@ -460,7 +461,7 @@ def phq9ChangeInput():
 
 		return out
 
-	print("NOTE: Goes by purchase date; specify the month you're looking at purchases in (i.e., not the last 30 days.)")
+	print("Input: Target month.")
 	print("========================")
 	startDate, endDate = inputDate()
 	bought = data.loc[data.boughtTime.between(startDate, endDate)]
@@ -661,7 +662,7 @@ def gotValue():
 
 		return out
 
-	print("Based on `boughtTime`; use target month for buyers (not last 30 days)")
+	print("Input: Target month")
 	print("======================")
 	startDate, endDate = inputDate()
 	bought = data.loc[data['boughtTime'].between(startDate, endDate)]
@@ -736,7 +737,7 @@ def effective():
 
 		return out
 
-	print("Based on `boughtTime`; use target month for buyers (not last 30 days)")
+	print("Input: Target month/period")
 	startDate, endDate = inputDate()
 	bought = data.loc[data.boughtTime.between(startDate, endDate)]
 
