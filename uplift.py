@@ -1,6 +1,7 @@
 
 # make parseArray() setting a function, replace in functions
 # add a function that takes the start, end points, and makes them variables, so you can just enter `start`, `end`.
+# figure out if I can do something similar to `usecols` but with rows, so that, if I want to import the full csv, I can cut out a lot of the old columns, so it will actually load. 
 
 
 print("-------------------")
@@ -8,6 +9,7 @@ print("")
 print("- Make sure you are using python3. You may need to run python with `python3` rather than `python`. (Many systems have both installed.)")
 print("")
 print("- Pandas is imported by default.")
+print("- Please note that all email addresses are converted to lowercase on import.")
 print("")
 print("-------------------")
 
@@ -27,7 +29,7 @@ def setup():
 	if fullImport == "y":
 		data = pd.read_csv(csvIn, parse_dates=['todaysDate', 'Time Started (UTC)', 'REGstartTime', 'pricingTime', 'boughtTime'], converters={"MoodScores": str, "MJentriesCompletedEachSession": str, "toolboxEngagement": str}, low_memory=False)
 	if fullImport == "n":
-		data = pd.read_csv(csvIn, usecols=['pricingTime','utm_source', 'couponCode', 'name', 'email', 'name','Run', 'User', 'Time Started (UTC)', 'iosApp', 'currentSession', 'sessionsCompleted', 'boughtTrigger','subscription_status', 'paywallEmail', 'paywallUserID', 'currentlyBrowsingMenus', 'currentlymidsession', 'todaysDate', 'Time Started (UTC)', 'boughtTime', 'payment_plan', 'iosApp', 'programStartTime', 'sessionsCompleted', 'REGstartTime', 'REGduration', 'FFduration', 'MBduration', 'PAduration', 'LIESduration','NumberOfChallengesCompleted', 'receivingMJprompts','MoodScores', 'MJentriesCompletedEachSession', 'toolboxEngagement', 'daysActiveNb', 'satisfactionFeedbackIntro', 'upliftRatingatFF', 'upliftRatingatTE', 'MJentriesCompletedbyFFstart', 'averageMJsPerDayEachSess', 'toolboxMetrics', 'homeMetrics', 'settingsMetrics', 'LearnTabMetrics', 'bugsByMB', 'bugsByIMJ', 'bugsByMBdescription', 'bugsByIMJdescription', 'cancellationReason', "Points", "Minutes Spent", "subscriptionCreated", 'subscription_start_date'], parse_dates=['todaysDate', 'Time Started (UTC)', 'REGstartTime', 'pricingTime', 'boughtTime', 'subscription_start_date'], converters={"MoodScores": str, "MJentriesCompletedEachSession": str, "toolboxEngagement": str}, low_memory=False)
+		data = pd.read_csv(csvIn, usecols=['pricingTime','utm_source', 'couponCode', 'name', 'email', 'name','Run', 'User', 'Time Started (UTC)', 'iosApp', 'currentSession', 'sessionsCompleted', 'boughtTrigger','subscription_status', 'paywallEmail', 'paywallUserID', 'currentlyBrowsingMenus', 'currentlymidsession', 'todaysDate', 'Time Started (UTC)', 'boughtTime', 'payment_plan', 'iosApp', 'programStartTime', 'sessionsCompleted', 'REGstartTime', 'REGduration', 'FFduration', 'MBduration', 'PAduration', 'LIESduration','NumberOfChallengesCompleted', 'receivingMJprompts','MoodScores', 'MJentriesCompletedEachSession', 'toolboxEngagement', 'daysActiveNb', 'satisfactionFeedbackIntro', 'upliftRatingatFF', 'upliftRatingatTE', 'MJentriesCompletedbyFFstart', 'averageMJsPerDayEachSess', 'toolboxMetrics', 'homeMetrics', 'settingsMetrics', 'LearnTabMetrics', 'bugsByMB', 'bugsByIMJ', 'bugsByMBdescription', 'bugsByIMJdescription', 'cancellationReason', "Points", "Minutes Spent", "subscriptionCreated", 'subscription_start_date', 'platform'], parse_dates=['todaysDate', 'Time Started (UTC)', 'REGstartTime', 'pricingTime', 'boughtTime', 'subscription_start_date'], converters={"MoodScores": str, "MJentriesCompletedEachSession": str, "toolboxEngagement": str}, low_memory=False)
 	excludedNames = ['Qanielle', 'Johnny Vampire', 'Aislinntesting', 'SpencerTest', 'Banana']
 	# Could exclude some data based on emails as well; Spencer has one willfind@gmail.com that keeps slipping in.
 	mask = data.name.apply(lambda name: name not in excludedNames)
@@ -182,9 +184,10 @@ def newSignups():
 	Note: Do not include quotes if using the menu interface.
 	"""
 	# data['Time Started (UTC)'] = data['Time Started (UTC)'].apply(pd.to_datetime) I believe this worked; the above still seems to have triggered the error. Both obsolete now, but might need to figure out what was happening in the future.
-	print("What starting date? YYYY-MM-DD")
+	print("Input: Period desired.")
+	print("What starting date? YYYY-MM-DD HH:MM:SS")
 	startDate = pd.to_datetime(input())
-	print("What end date? YYYY-MM-DD")
+	print("What end date? YYYY-MM-DD HH:MM:SS")
 	endDate = pd.to_datetime(input())
 	withinRange = data.loc[data['REGstartTime'].between(startDate, endDate)]
 	print("Between", startDate, "and", endDate, "there were:")
@@ -267,6 +270,7 @@ def metrics():
 	monthlySubRev = monthlySubs * 30
 	totalNewSubRev = quarterlySubRev + monthlySubRev
 	# this may need to get more precise, if we wish to reflect the difference in cut Braintree takes vs the apps. Currently, the idea would be to just * .7 to get our share of this.
+	# REDO THIS TO REFLECT `platformPurchased` AND REV LOST TO PLATFORMS.
 
 	# Find costs
 
