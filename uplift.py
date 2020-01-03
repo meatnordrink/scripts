@@ -1,4 +1,4 @@
-
+# Once live, incorporate `platformPurchased` variable (set in Introduction) to Metrics() to allow revenue calculation. 
 # make parseArray() setting a function, replace in functions
 # add a function that takes the start, end points, and makes them variables, so you can just enter `start`, `end`.
 # figure out if I can do something similar to `usecols` but with rows, so that, if I want to import the full csv, I can cut out a lot of the old columns, so it will actually load. 
@@ -270,7 +270,8 @@ def metrics():
 	monthlySubRev = monthlySubs * 30
 	totalNewSubRev = quarterlySubRev + monthlySubRev
 	# this may need to get more precise, if we wish to reflect the difference in cut Braintree takes vs the apps. Currently, the idea would be to just * .7 to get our share of this.
-	# REDO THIS TO REFLECT `platformPurchased` AND REV LOST TO PLATFORMS.
+
+	# REDO THIS TO REFLECT `platformPurchased` AND REV LOST TO PLATFORMS. Note that `totalRev` is gross; but anything based on `monthlySubRev` or `totalNewSubRev` is wrong.
 
 	# Find costs
 
