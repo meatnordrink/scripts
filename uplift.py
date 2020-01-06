@@ -9,7 +9,9 @@ print("")
 print("- Make sure you are using python3. You may need to run python with `python3` rather than `python`. (Many systems have both installed.)")
 print("")
 print("- Pandas is imported by default.")
-print("- Please note that all email addresses are converted to lowercase on import.")
+print("Please note that: ")
+print(" - all email addresses are converted to lowercase on import; you'll need to search for them as lowercase.")
+print(" - some functions (any based on `todaysDate`) require the input range to include the most recent date in the CSV to be accurate. Which input is required is noted for each function.")
 print("")
 print("-------------------")
 
@@ -70,10 +72,7 @@ def findActives():
 	Returns `actives`. 
 	"""
 	print("Input: Last 30 days.")
-	print("What starting date? YYYY-MM-DD")
-	startDate = pd.to_datetime(input())
-	print("What end date? YYYY-MM-DD")
-	endDate = pd.to_datetime(input())
+	startDate, endDate = inputDate()
 	boughtEver = data.loc[data.boughtTrigger == "fired"]
 	withinRange = boughtEver.loc[boughtEver.todaysDate.between(startDate, endDate)]
 	actives = withinRange
@@ -159,10 +158,7 @@ def activeUsersAndSpread():
 
 	"""
 	print("Input: Last 30 days.")
-	print("What starting date? YYYY-MM-DD")
-	startDate = pd.to_datetime(input())
-	print("What end date? YYYY-MM-DD")
-	endDate = pd.to_datetime(input())
+	startDate, endDate = inputDate()
 	boughtEver = data.loc[data.boughtTrigger=="fired"]
 	#boughtEver.todaysDate = boughtEver.todaysDate.apply(pd.to_datetime) # the .apply is necessary to avoid a chain-indexing warning, "SettingWithCopyWarning". An alternative is to set the relevant columns as dates on import, with pd.read_csv('input.csv', parse_dates=['Time Started (UTC)', 'timeStarted'), though that might mean the metrics() function needs to be adjusted accordingly (no, as I didn't use 'Time Started (UTC)')
 	withinRange = boughtEver.loc[boughtEver.todaysDate.between(startDate, endDate)]
@@ -185,10 +181,7 @@ def newSignups():
 	"""
 	# data['Time Started (UTC)'] = data['Time Started (UTC)'].apply(pd.to_datetime) I believe this worked; the above still seems to have triggered the error. Both obsolete now, but might need to figure out what was happening in the future.
 	print("Input: Period desired.")
-	print("What starting date? YYYY-MM-DD HH:MM:SS")
-	startDate = pd.to_datetime(input())
-	print("What end date? YYYY-MM-DD HH:MM:SS")
-	endDate = pd.to_datetime(input())
+	startDate, endDate = inputDate()
 	withinRange = data.loc[data['REGstartTime'].between(startDate, endDate)]
 	print("Between", startDate, "and", endDate, "there were:")
 	print(withinRange.shape[0], "new sign-ups.")
@@ -271,7 +264,7 @@ def metrics():
 	totalNewSubRev = quarterlySubRev + monthlySubRev
 	# this may need to get more precise, if we wish to reflect the difference in cut Braintree takes vs the apps. Currently, the idea would be to just * .7 to get our share of this.
 
-	# REDO THIS TO REFLECT `platformPurchased` AND REV LOST TO PLATFORMS. Note that `totalRev` is gross; but anything based on `monthlySubRev` or `totalNewSubRev` is wrong.
+	# REDO THIS TO REFLECT `platformPurchased` AND REV LOST TO PLATFORMS. Note that `totalRev` is gross; but anything based on `monthlySubRev` or `totalNewSubRev` is inflated, as anyone on an app platform generates less than 30/45 (*.7).
 
 	# Find costs
 
@@ -667,7 +660,7 @@ def gotValue():
 
 		return out
 
-	print("Input: Target month")
+	print("Input: Last 30 days")
 	print("======================")
 	startDate, endDate = inputDate()
 	bought = data.loc[data['boughtTime'].between(startDate, endDate)]
@@ -742,7 +735,7 @@ def effective():
 
 		return out
 
-	print("Input: Target month/period")
+	print("Input: Last 30 days")
 	startDate, endDate = inputDate()
 	bought = data.loc[data.boughtTime.between(startDate, endDate)]
 
@@ -1015,7 +1008,12 @@ def bugs():
 		print("No values.")
 	except:
 		tb.print_exc()
-	print("No bugs:", imjValues[0])
+	try:
+		print("No bugs:", imjValues[0])
+	except(KeyError):
+		print("No values.")
+	except:
+		tb.print_exc()
 
 	print("Print out bug descriptions? y/n")
 	printYN = input()
