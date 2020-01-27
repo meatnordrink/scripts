@@ -32,8 +32,8 @@ def setup():
 		data = pd.read_csv(csvIn, parse_dates=['todaysDate', 'Time Started (UTC)', 'REGstartTime', 'pricingTime', 'boughtTime'], converters={"MoodScores": str, "MJentriesCompletedEachSession": str, "toolboxEngagement": str}, low_memory=False)
 	if fullImport == "n":
 		data = pd.read_csv(csvIn, usecols=['age', 'gender', 'pricingTime','utm_source', 'couponCode', 'name', 'email', 'name','Run', 'User', 'Time Started (UTC)', 'iosApp', 'currentSession', 'sessionsCompleted', 'boughtTrigger','subscription_status', 'paywallEmail', 'paywallUserID', 'currentlyBrowsingMenus', 'currentlymidsession', 'todaysDate', 'Time Started (UTC)', 'boughtTime', 'payment_plan', 'iosApp', 'programStartTime', 'sessionsCompleted', 'REGstartTime', 'REGduration', 'FFduration', 'MBduration', 'PAduration', 'LIESduration','NumberOfChallengesCompleted', 'receivingMJprompts','MoodScores', 'MJentriesCompletedEachSession', 'toolboxEngagement', 'daysActiveNb', 'satisfactionFeedbackIntro', 'upliftRatingatFF', 'upliftRatingatTE', 'IMJcount', 'MJentriesCompletedbyFFstart', 'averageMJsPerDayEachSess', 'toolboxMetrics', 'homeMetrics', 'settingsMetrics', 'LearnTabMetrics', 'bugsByMB', 'bugsByIMJ', 'bugsByMBdescription', 'bugsByIMJdescription', 'cancellationReason', "Points", "Minutes Spent", "subscriptionCreated", 'subscription_start_date', 'platform'], parse_dates=['todaysDate', 'Time Started (UTC)', 'REGstartTime', 'pricingTime', 'boughtTime', 'subscription_start_date'], converters={"MoodScores": str, "MJentriesCompletedEachSession": str, "toolboxEngagement": str}, low_memory=False)
-	excludedNames = ['Qanielle', 'Johnny Vampire', 'Aislinntesting', 'SpencerTest', 'Banana']
-	# Could exclude some data based on emails as well; Spencer has one willfind@gmail.com that keeps slipping in.
+	excludedNames = ['Qanielle', 'Johnny Vampire', 'Aislinntesting', 'SpencerTest', 'Banana', 'AlyssaTest']
+	# Could exclude some data based on emails as well; Spencer has one willfind@gmail.com that keeps slipping in. 
 	mask = data.name.apply(lambda name: name not in excludedNames)
 	dataReal = data.loc[mask]
 	data = dataReal
